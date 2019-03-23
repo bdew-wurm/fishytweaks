@@ -51,11 +51,15 @@ public class FishyMod implements WurmServerMod, Configurable, PreInitable, Inita
                             @Override
                             public void edit(MethodCall m) throws CannotCompileException {
                                 if (m.getMethodName().equals("makeFishCreature")) {
-                                    m.replace("$_ = $proceed($$); net.bdew.wurm.fishy.Hooks.doNotifySpawn($1, $5, $_);");
+                                    m.replace("$_ = $proceed($$); if (startCmd==20) net.bdew.wurm.fishy.Hooks.doNotifySpawn($1, $_, true);");
                                     logInfo(String.format("Injecting doNotifySpawn into makeFish() at %d", m.getLineNumber()));
                                 }
                             }
                         });
+
+                ctFishing.getMethod("processFishBite", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/skills/Skill;)Z")
+                        .insertAfter("net.bdew.wurm.fishy.Hooks.doNotifySpawn($1, $2.getCreature(), false);");
+                logInfo("Added doNotifySpawn to processFishBite()");
             }
 
             if (Config.skillTickPeriodRod > 0 || Config.skillTickPeriodNet > 0 || Config.skillTickPeriodSpear > 0) {

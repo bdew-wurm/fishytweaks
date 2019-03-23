@@ -7,15 +7,13 @@ import com.wurmonline.server.items.ItemList;
 import com.wurmonline.server.skills.SkillList;
 
 public class Hooks {
-    public static void doNotifySpawn(Creature performer, byte mode, Creature fish) {
+    public static void doNotifySpawn(Creature performer, Creature fish, boolean spear) {
         if (performer.isPlayer() && performer.hasLink() && fish != null) {
-            if (Config.debugLogging)
-                FishyMod.logInfo(String.format("Fishing for %s - notify %s mode=%d", performer.getName(), fish.getName(), mode));
             performer.getCommunicator().sendSafeServerMessage(
                     String.format("%s %s is %s!",
                             "aeiouAEIOU".contains(fish.getName().substring(0, 1)) ? "An" : "A",
                             fish.getName(),
-                            mode == 0 ? "biting" : "swimming by"
+                            spear ? "swimming by" : "biting"
                     ), (byte) 1);
         }
     }
