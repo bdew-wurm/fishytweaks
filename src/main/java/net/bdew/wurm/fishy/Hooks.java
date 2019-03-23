@@ -54,4 +54,9 @@ public class Hooks {
         }
         return bonus;
     }
+
+    public static long modifyTiming(String method, Creature performer, Item source, Action action, long newVal) {
+        FishyMod.logInfo(String.format("Fishing for %s timer at %s src=%s delta=%d stage=%d", performer.getName(), method, source.getName(), newVal - action.getData(), action.getTickCount()));
+        return newVal;
+    }
 }
