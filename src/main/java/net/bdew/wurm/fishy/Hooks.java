@@ -32,7 +32,7 @@ public class Hooks {
         if (period > 0 && act.getSecond() % period == 0) {
             performer.getSkills().getSkillOrLearn(SkillList.FISHING).skillCheck(0, source, 0f, false, period);
             if (Config.debugLogging)
-                FishyMod.logInfo(String.format("Fishing for %s - doing skill tick at %d/%d seconds", performer.getName(), act.getSecond(), period));
+                FishyMod.logInfo(String.format("Fishing for %s - doing skill tick at %d/%d seconds - stage %d", performer.getName(), act.getSecond(), period, act.getTickCount()));
         }
     }
 
@@ -56,7 +56,24 @@ public class Hooks {
     }
 
     public static long modifyTiming(String method, Creature performer, Item source, Action action, long newVal) {
-        FishyMod.logInfo(String.format("Fishing for %s timer at %s src=%s delta=%d stage=%d", performer.getName(), method, source.getName(), newVal - action.getData(), action.getTickCount()));
+        Config.Timing override = null;
+
+        if (method.equals("processFishCasted") || method.equals("processFishSwamAway")) {
+            override = Config.rodFishSpawnTime;
+        }
+
+        if (override != null) {
+            int ticks = (int) (10f * override.calculate(source.getCurrentQualityLevel(), source.getSpellSpeedBonus()));
+            if (Config.debugLogging)
+                FishyMod.logInfo(String.format("Overriding timer for %s at %s to %.1f sec (state=%d)",
+                        performer.getName(), method, 0.1f * ticks, action.getTickCount()));
+            newVal = action.getData() + ticks;
+        } else {
+            if (Config.debugLogging)
+                FishyMod.logInfo(String.format("Not overriding timer for %s at %s - %.1f sec (state=%d)",
+                        performer.getName(), method, 0.1f * (newVal - action.getData()), action.getTickCount()));
+        }
+
         return newVal;
     }
 }
