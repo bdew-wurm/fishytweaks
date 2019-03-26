@@ -10,7 +10,8 @@ public class Config {
     public static int skillTickPeriodRod, skillTickPeriodSpear, skillTickPeriodNet;
     public static boolean disableSpearHardMiss;
     public static float spearBonusMaxDistance, spearBonusDistanceScale, spearBonusNimScale;
-    public static Timing rodFishSpawnTime;
+    public static float fishSpeedModRod, fishSpeedModRodPull, fishSpeedModSpear;
+    public static Timing rodFishSpawnTime, spearFishSpawnTime, netFishCheckInterval;
 
     public static class Timing {
         public final float min, max, enchantScale, qlScale;
@@ -58,7 +59,15 @@ public class Config {
         spearBonusDistanceScale = Float.parseFloat(props.getProperty("spearBonusDistanceScale", "0"));
         spearBonusNimScale = Float.parseFloat(props.getProperty("spearBonusNimScale", "0"));
 
+        fishSpeedModRod = Float.parseFloat(props.getProperty("fishSpeedModRod", "1"));
+        fishSpeedModRodPull = Float.parseFloat(props.getProperty("fishSpeedModRodPull", "1"));
+        fishSpeedModSpear = Float.parseFloat(props.getProperty("fishSpeedModSpear", "1"));
+
         if (props.containsKey("rodFishSpawnTime"))
             rodFishSpawnTime = Timing.from(props.getProperty("rodFishSpawnTime"));
+        if (props.containsKey("spearFishSpawnTime"))
+            spearFishSpawnTime = Timing.from(props.getProperty("spearFishSpawnTime"));
+        if (props.containsKey("netFishCheckInterval"))
+            netFishCheckInterval = Timing.from(props.getProperty("netFishCheckInterval"));
     }
 }

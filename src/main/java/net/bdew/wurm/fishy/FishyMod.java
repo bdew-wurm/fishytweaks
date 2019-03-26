@@ -41,10 +41,12 @@ public class FishyMod implements WurmServerMod, Configurable, PreInitable, Inita
 
     private void installTimeHoook(CtMethod method, String perf, String item, String act) throws CannotCompileException {
         method.instrument(new ExprEditor() {
+            private int callNr = 0;
+
             @Override
             public void edit(MethodCall m) throws CannotCompileException {
                 if (m.getMethodName().equals("setData") && m.getClassName().endsWith("Action")) {
-                    m.replace(String.format("$proceed(net.bdew.wurm.fishy.Hooks.modifyTiming(\"%s\", %s, %s, %s, $1));", m.where().getName(), perf, item, act));
+                    m.replace(String.format("$proceed(net.bdew.wurm.fishy.Hooks.modifyTiming(\"%s\", %d, %s, %s, %s, $1));", m.where().getName(), callNr++, perf, item, act));
                     logInfo(String.format("Injecting timing hook in %s() at %d", m.where().getName(), m.getLineNumber()));
                 }
             }
@@ -93,8 +95,35 @@ public class FishyMod implements WurmServerMod, Configurable, PreInitable, Inita
                                     logInfo(String.format("Disabling hard miss in processSpearStrike() at %d", m.getLineNumber()));
                                 } else if (strikeBonus && m.getMethodName().equals("getDifficulty")) {
                                     m.replace("$_ = $proceed($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, net.bdew.wurm.fishy.Hooks.spearStrikeBonus($1,$6,dx * dx + dy * dy), $13);");
+                                    logInfo(String.format("Injected strike bonus in processSpearStrike() at %d", m.getLineNumber()));
                                 }
 
+                            }
+                        });
+            }
+
+            if (Config.fishSpeedModRod != 1 || Config.fishSpeedModSpear != 1) {
+                ctFishing.getMethod("makeFish", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/skills/Skill;B)Z")
+                        .instrument(new ExprEditor() {
+                            @Override
+                            public void edit(MethodCall m) throws CannotCompileException {
+                                if (m.getMethodName().equals("makeFishCreature")) {
+                                    m.replace("$_=$proceed($1,$2,$3,$4,$5,net.bdew.wurm.fishy.Hooks.speedModOverride(startCmd,$6),$7);");
+                                    logInfo(String.format("Injected speed modifier override in in makeFish() at %d", m.getLineNumber()));
+                                }
+                            }
+                        });
+            }
+
+            if (Config.fishSpeedModRodPull != 1) {
+                ctFishing.getMethod("processFishPull", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/skills/Skill;Lcom/wurmonline/server/items/Item;Z)Z")
+                        .instrument(new ExprEditor() {
+                            @Override
+                            public void edit(MethodCall m) throws CannotCompileException {
+                                if (m.getMethodName().equals("setMovementSpeedModifier")) {
+                                    m.replace("$_=$proceed(net.bdew.wurm.fishy.Hooks.speedModOverride((byte)-10,$1));");
+                                    logInfo(String.format("Injected speed modifier override in in processFishPull() at %d", m.getLineNumber()));
+                                }
                             }
                         });
             }
