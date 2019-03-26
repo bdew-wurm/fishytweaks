@@ -109,7 +109,7 @@ public class FishyMod implements WurmServerMod, Configurable, PreInitable, Inita
                             public void edit(MethodCall m) throws CannotCompileException {
                                 if (m.getMethodName().equals("makeFishCreature")) {
                                     m.replace("$_=$proceed($1,$2,$3,$4,$5,net.bdew.wurm.fishy.Hooks.speedModOverride(startCmd,$6),$7);");
-                                    logInfo(String.format("Injected speed modifier override in in makeFish() at %d", m.getLineNumber()));
+                                    logInfo(String.format("Injected speed modifier override in makeFish() at %d", m.getLineNumber()));
                                 }
                             }
                         });
@@ -122,22 +122,19 @@ public class FishyMod implements WurmServerMod, Configurable, PreInitable, Inita
                             public void edit(MethodCall m) throws CannotCompileException {
                                 if (m.getMethodName().equals("setMovementSpeedModifier")) {
                                     m.replace("$_=$proceed(net.bdew.wurm.fishy.Hooks.speedModOverride((byte)-10,$1));");
-                                    logInfo(String.format("Injected speed modifier override in in processFishPull() at %d", m.getLineNumber()));
+                                    logInfo(String.format("Injected speed modifier override in processFishPull() at %d", m.getLineNumber()));
                                 }
                             }
                         });
             }
 
             installTimeHoook(ctFishing.getMethod("fish", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/items/Item;IIIFLcom/wurmonline/server/behaviours/Action;)Z"), "performer", "source", "act");
-            installTimeHoook(ctFishing.getMethod("processNetPhase", "(Lcom/wurmonline/server/creatures/Creature;BLcom/wurmonline/server/items/Item;Lcom/wurmonline/server/behaviours/Action;IILcom/wurmonline/server/skills/Skill;)Z"), "performer", "net", "act");
-            installTimeHoook(ctFishing.getMethod("processSpearSwamAway", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;I)Z"), "performer", "spear", "act");
-            installTimeHoook(ctFishing.getMethod("processSpearMissed", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;)Z"), "performer", "spear", "act");
             installTimeHoook(ctFishing.getMethod("makeFish", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/skills/Skill;B)Z"), "performer", "source", "act");
             installTimeHoook(ctFishing.getMethod("processFishCasted", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;FFLcom/wurmonline/server/items/Item;Z)Z"), "performer", "rod", "act");
-            installTimeHoook(ctFishing.getMethod("processFishMove", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/skills/Skill;Lcom/wurmonline/server/items/Item;)Z"), "performer", "rod", "act");
             installTimeHoook(ctFishing.getMethod("processFishSwamAway", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;I)Z"), "performer", "rod", "act");
-            installTimeHoook(ctFishing.getMethod("processFishBite", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/skills/Skill;)Z"), "performer", "rod", "act");
             installTimeHoook(ctFishing.getMethod("processFishPull", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/skills/Skill;Lcom/wurmonline/server/items/Item;Z)Z"), "performer", "rod", "act");
+            installTimeHoook(ctFishing.getMethod("processSpearSwamAway", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;I)Z"), "performer", "spear", "act");
+            installTimeHoook(ctFishing.getMethod("processNetPhase", "(Lcom/wurmonline/server/creatures/Creature;BLcom/wurmonline/server/items/Item;Lcom/wurmonline/server/behaviours/Action;IILcom/wurmonline/server/skills/Skill;)Z"), "performer", "net", "act");
 
         } catch (Throwable e) {
             throw new RuntimeException(e);
