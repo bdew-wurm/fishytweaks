@@ -6,7 +6,7 @@ import java.util.Properties;
 
 public class Config {
     public static boolean debugLogging;
-    public static boolean onScreenNotify;
+    public static boolean onScreenNotify, autoStoreFish;
     public static int skillTickPeriodRod, skillTickPeriodSpear, skillTickPeriodNet;
     public static boolean disableSpearHardMiss;
     public static float spearBonusMaxDistance, spearBonusDistanceScale, spearBonusNimScale;
@@ -48,6 +48,7 @@ public class Config {
         debugLogging = Boolean.parseBoolean(props.getProperty("debugLogging", "false"));
 
         onScreenNotify = Boolean.parseBoolean(props.getProperty("onScreenNotify", "false"));
+        autoStoreFish = Boolean.parseBoolean(props.getProperty("autoStoreFish", "false"));
 
         skillTickPeriodRod = Integer.parseInt(props.getProperty("skillTickPeriodRod", "-1"));
         skillTickPeriodSpear = Integer.parseInt(props.getProperty("skillTickPeriodSpear", "-1"));

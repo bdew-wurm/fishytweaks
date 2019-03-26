@@ -7,16 +7,13 @@ import javassist.CtMethod;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
-import org.gotti.wurmunlimited.modloader.interfaces.Configurable;
-import org.gotti.wurmunlimited.modloader.interfaces.Initable;
-import org.gotti.wurmunlimited.modloader.interfaces.PreInitable;
-import org.gotti.wurmunlimited.modloader.interfaces.WurmServerMod;
+import org.gotti.wurmunlimited.modloader.interfaces.*;
 
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FishyMod implements WurmServerMod, Configurable, PreInitable, Initable {
+public class FishyMod implements WurmServerMod, Configurable, PreInitable, Initable, ServerStartedListener {
     private static final Logger logger = Logger.getLogger("FishyMod");
 
     public static void logException(String msg, Throwable e) {
@@ -128,6 +125,19 @@ public class FishyMod implements WurmServerMod, Configurable, PreInitable, Inita
                         });
             }
 
+            if (Config.autoStoreFish) {
+                ctFishing.getMethod("makeDeadFish", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/skills/Skill;BLcom/wurmonline/server/items/Item;Lcom/wurmonline/server/items/Item;)I")
+                        .instrument(new ExprEditor() {
+                            @Override
+                            public void edit(MethodCall m) throws CannotCompileException {
+                                if (m.getMethodName().equals("insertItem")) {
+                                    m.replace("$_=net.bdew.wurm.fishy.Hooks.catchFishHook(performer, $0, $1);");
+                                    logInfo(String.format("Injected auto store in makeDeadFish() at %d", m.getLineNumber()));
+                                }
+                            }
+                        });
+            }
+
             installTimeHoook(ctFishing.getMethod("fish", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/items/Item;IIIFLcom/wurmonline/server/behaviours/Action;)Z"), "performer", "source", "act");
             installTimeHoook(ctFishing.getMethod("makeFish", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/skills/Skill;B)Z"), "performer", "source", "act");
             installTimeHoook(ctFishing.getMethod("processFishCasted", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;FFLcom/wurmonline/server/items/Item;Z)Z"), "performer", "rod", "act");
@@ -143,5 +153,14 @@ public class FishyMod implements WurmServerMod, Configurable, PreInitable, Inita
 
     @Override
     public void init() {
+    }
+
+    @Override
+    public void onServerStarted() {
+        try {
+            Hooks.init();
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
