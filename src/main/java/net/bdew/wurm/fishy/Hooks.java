@@ -1,7 +1,6 @@
 package net.bdew.wurm.fishy;
 
 import com.wurmonline.server.Items;
-import com.wurmonline.server.NoSuchItemException;
 import com.wurmonline.server.behaviours.Action;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
@@ -103,74 +102,77 @@ public class Hooks {
         return newVal;
     }
 
-    public static boolean catchFishHook(Creature performer, Item target, Item fish) {
-        // First try to put in open planted keep net
+    private static boolean tryToPutFishInOpenKeepNet(Creature performer, Item fish) {
         if (performer.isPlayer()) {
             try {
                 Set<Item> watched = ReflectionUtil.getPrivateField(performer, fItemsWatched);
                 if (watched != null) {
-                    for (Item container : watched) {
-                        if (container.getTemplateId() == ItemList.netKeep &&
-                                container.isPlanted() &&
-                                container.getParentId() == -10L &&
-                                container.mayCreatureInsertItem() &&
-                                container.insertItem(fish)) {
-                            fish.setLastOwnerId(performer.getWurmId());
-                            return true;
-                        }
-                    }
+                    return watched.stream().anyMatch(net -> tryToPutFishInKeepNet(performer, net, fish, false));
                 }
             } catch (IllegalAccessException e) {
                 FishyMod.logException(String.format("Error accessing watched items for %s", performer.getName()), e);
             }
         }
+        return false;
+    }
 
-        // If that failed see if player is in boat
+    private static boolean tryToPutFishInKeepNet(Creature performer, Item net, Item fish, boolean attached) {
+        if (net.getTemplateId() == ItemList.netKeep
+                && net.mayCreatureInsertItem()
+                && net.insertItem(fish)
+                && (attached || (net.isPlanted() && net.getParentId() == -10L))) {
+            fish.setLastOwnerId(performer.getWurmId());
+            if (!attached)
+                performer.getCommunicator().sendNormalServerMessage(String.format("You put the %s in the nearby %s.", fish.getName(), net.getName()));
+            return true;
+        } else return false;
+    }
 
-        Item vehicle = null;
-        try {
-            if (performer.getVehicle() != -10)
-                vehicle = Items.getItem(performer.getVehicle());
-        } catch (NoSuchItemException ignored) {
-        }
-
-        if (vehicle != null && vehicle.isHollow() && vehicle.mayAccessHold(performer)) {
-            // Check attached keep net
-            if (vehicle.getExtra() != -10L) {
-                try {
-                    Item net = Items.getItem(vehicle.getExtra());
-                    if (net.getTemplateId() == ItemList.netKeep && net.mayCreatureInsertItem() && net.insertItem(fish)) {
-                        fish.setLastOwnerId(performer.getWurmId());
-                        return true;
-                    }
-                } catch (NoSuchItemException e) {
-                    //ignore
-                }
-            }
-
-            // If no net - try putting in crate/fsb
-            if (fish.getTemplate().isBulk() && fish.getRarity() == 0) {
-                for (Item container : vehicle.getAllItems(true)) {
-                    if (container.isCrate() && container.canAddToCrate(fish) && container.mayAccessHold(performer)) {
-                        if (fish.AddBulkItemToCrate(performer, container)) {
-                            performer.getCommunicator().sendNormalServerMessage(String.format("You put the %s in the %s in your %s.", fish.getName(), container.getName(), vehicle.getName()));
-                            return true;
-                        }
-                    } else if (container.getTemplateId() == ItemList.hopper && container.hasSpaceFor(fish.getVolume()) && container.mayAccessHold(performer)) {
-                        if (fish.AddBulkItem(performer, container)) {
-                            performer.getCommunicator().sendNormalServerMessage(String.format("You put the %s in the %s in your %s.", fish.getName(), container.getName(), vehicle.getName()));
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            // If all above failed try putting it in the hold
-            if (vehicle.mayCreatureInsertItem() && vehicle.insertItem(fish)) {
-                performer.getCommunicator().sendNormalServerMessage(String.format("You put the %s in the hold of %s.", fish.getName(), vehicle.getName()));
+    private static boolean tryToPutFishInVehicle(Creature performer, Item vehicle, Item fish) {
+        // Check attached keep net
+        if (vehicle.getExtra() != -10L) {
+            if (Items.getItemOptional(vehicle.getExtra()).filter(net -> tryToPutFishInKeepNet(performer, net, fish, true)).isPresent()) {
+                performer.getCommunicator().sendNormalServerMessage(String.format("You put the %s in the net attached to your %s.", fish.getName(), vehicle.getName()));
                 return true;
             }
         }
+
+        // If no net - try putting in crate/fsb
+        if (fish.getTemplate().isBulk() && fish.getRarity() == 0) {
+            for (Item container : vehicle.getAllItems(true)) {
+                if (container.isCrate() && container.canAddToCrate(fish) && container.mayAccessHold(performer)) {
+                    if (fish.AddBulkItemToCrate(performer, container)) {
+                        performer.getCommunicator().sendNormalServerMessage(String.format("You put the %s in the %s in your %s.", fish.getName(), container.getName(), vehicle.getName()));
+                        return true;
+                    }
+                } else if (container.getTemplateId() == ItemList.hopper && container.hasSpaceFor(fish.getVolume()) && container.mayAccessHold(performer)) {
+                    if (fish.AddBulkItem(performer, container)) {
+                        performer.getCommunicator().sendNormalServerMessage(String.format("You put the %s in the %s in your %s.", fish.getName(), container.getName(), vehicle.getName()));
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // If all above failed try putting it in the hold
+        if (vehicle.mayCreatureInsertItem() && vehicle.insertItem(fish)) {
+            performer.getCommunicator().sendNormalServerMessage(String.format("You put the %s in the hold of %s.", fish.getName(), vehicle.getName()));
+            return true;
+        }
+
+        return false;
+    }
+
+
+    public static boolean catchFishHook(Creature performer, Item target, Item fish) {
+        // First try to put in open planted keep net
+        if (tryToPutFishInOpenKeepNet(performer, fish)) return true;
+
+        // If that failed see if player is in boat and try to put it into something there
+        if (performer.getVehicle() != -10 &&
+                Items.getItemOptional(performer.getVehicle())
+                        .filter(boat -> boat.isHollow() && boat.mayAccessHold(performer) && tryToPutFishInVehicle(performer, boat, fish))
+                        .isPresent()) return true;
 
         // And finally try player inventory, if that fails default to the original target
         return performer.getInventory().insertItem(fish) || target.insertItem(fish);
