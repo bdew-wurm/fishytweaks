@@ -7,10 +7,12 @@ repositories {
     mavenCentral()
     mavenLocal()
     maven { url "http://gotti.no-ip.org/maven/repository" }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     compile 'org.gotti.wurmunlimited:server-modlauncher:0.43-beta1'
+    compile 'com.github.bdew-wurm:bdew_server_mod_tools:876e2d7002'
 }
 
 jar {

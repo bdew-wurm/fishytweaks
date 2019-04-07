@@ -12,6 +12,9 @@ public class Config {
     public static float spearBonusMaxDistance, spearBonusDistanceScale, spearBonusNimScale;
     public static float fishSpeedModRod, fishSpeedModRodPull, fishSpeedModSpear;
     public static Timing rodFishSpawnTime, spearFishSpawnTime, netFishCheckInterval;
+    public static boolean fishLorePatch;
+    public static int fishLoreInterval;
+    public static float fishLoreSkill;
 
     public static class Timing {
         public final float min, max, enchantScale, qlScale;
@@ -70,5 +73,9 @@ public class Config {
             spearFishSpawnTime = Timing.from(props.getProperty("spearFishSpawnTime"));
         if (props.containsKey("netFishCheckInterval"))
             netFishCheckInterval = Timing.from(props.getProperty("netFishCheckInterval"));
+
+        fishLorePatch = Boolean.parseBoolean(props.getProperty("fishLorePatch", "false"));
+        fishLoreInterval = Integer.parseInt(props.getProperty("fishLoreInterval", "5"));
+        fishLoreSkill = Float.parseFloat(props.getProperty("fishLoreSkill", "-1"));
     }
 }

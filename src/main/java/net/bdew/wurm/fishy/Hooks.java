@@ -2,6 +2,7 @@ package net.bdew.wurm.fishy;
 
 import com.wurmonline.server.Items;
 import com.wurmonline.server.behaviours.Action;
+import com.wurmonline.server.behaviours.MethodsFishing;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
 import com.wurmonline.server.items.ItemList;
@@ -176,5 +177,12 @@ public class Hooks {
 
         // And finally try player inventory, if that fails default to the original target
         return performer.getInventory().insertItem(fish) || target.insertItem(fish);
+    }
+
+    public static boolean maybeShowFishTable(Creature performer, Item source, MethodsFishing.FishRow[] table, int x, int y) {
+        if (Config.fishLoreSkill >= 0 && performer.getSkills().getSkillOrLearn(SkillList.FISHING).getKnowledge() >= Config.fishLoreSkill) {
+            FishLoreWindow.send(performer, source, table, x, y, FishLoreWindow.SortMode.CHANCE_DESC);
+            return true;
+        } else return false;
     }
 }
