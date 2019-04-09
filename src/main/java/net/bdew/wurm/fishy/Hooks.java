@@ -181,7 +181,7 @@ public class Hooks {
 
     public static boolean maybeShowFishTable(Creature performer, Item source, MethodsFishing.FishRow[] table, int x, int y) {
         if (Config.fishLoreSkill >= 0 && performer.getSkills().getSkillOrLearn(SkillList.FISHING).getKnowledge() >= Config.fishLoreSkill) {
-            FishLoreWindow.send(performer, source, table, x, y, FishLoreWindow.SortMode.CHANCE_DESC);
+            LoreWindow.send(performer, source, table, x, y, LoreWindow.SortMode.CHANCE_DESC);
             return true;
         } else return false;
     }
