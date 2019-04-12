@@ -143,6 +143,11 @@ public class FishyMod implements WurmServerMod, Configurable, PreInitable, Inita
                 LoreActionPatch.apply(ctShowFishTable, Config.fishLoreInterval);
             }
 
+            if (Config.alwaysAllowTileGathering) {
+                classPool.getCtClass("com.wurmonline.server.Server")
+                        .getMethod("hasGrubs", "(II)Z").setBody("return true;");
+            }
+
             installTimeHoook(ctFishing.getMethod("fish", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/items/Item;IIIFLcom/wurmonline/server/behaviours/Action;)Z"), "performer", "source", "act");
             installTimeHoook(ctFishing.getMethod("makeFish", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/skills/Skill;B)Z"), "performer", "source", "act");
             installTimeHoook(ctFishing.getMethod("processFishCasted", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/behaviours/Action;FFLcom/wurmonline/server/items/Item;Z)Z"), "performer", "rod", "act");

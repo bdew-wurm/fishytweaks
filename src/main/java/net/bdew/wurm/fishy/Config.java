@@ -15,6 +15,7 @@ public class Config {
     public static boolean fishLorePatch;
     public static int fishLoreInterval;
     public static float fishLoreSkill, fishLoreSkillDetails;
+    public static boolean alwaysAllowTileGathering;
 
     public static class Timing {
         public final float min, max, enchantScale, qlScale;
@@ -78,5 +79,7 @@ public class Config {
         fishLoreInterval = Integer.parseInt(props.getProperty("fishLoreInterval", "5"));
         fishLoreSkill = Float.parseFloat(props.getProperty("fishLoreSkill", "-1"));
         fishLoreSkillDetails = Float.parseFloat(props.getProperty("fishLoreSkillDetails", "-1"));
+
+        alwaysAllowTileGathering = Boolean.parseBoolean(props.getProperty("alwaysAllowTileGathering", "false"));
     }
 }
